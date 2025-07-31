@@ -1,0 +1,8 @@
+pandas==2.1.1           # Latest (Data manipulation)
+numpy==1.25.2          # Latest (Math operations)
+tensorflow==2.15.0      # Latest (ML model training)
+flask==2.3.3           # Latest (Web app deployment)
+folium==0.14.0         # Latest (Map visualization)
+requests==2.31.0       # Latest (API calls)
+jupyter==1.0.0         # Latest (Notebooks)
+python-dotenv==1.0.1   # Latest (Environment variables)

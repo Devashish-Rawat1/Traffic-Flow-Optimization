@@ -1,0 +1,47 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# Jupyter Notebook
+# -------------
+# .ipynb_checkpoints/
+# *.ipynb
+# -----------
+# IDE specific files
+.vscode/
+.idea/
+
+# Data files (exclude large/raw datasets)
+*.csv
+*.xlsx
+*.parquet
+*.feather
+
+# Environment variables
+secrets.env
+
+# Build/installation files
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Logs and databases
+*.log
+*.sqlite
+*.db
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Local development files
+local-settings.json
+*.tmp
+*.swp
