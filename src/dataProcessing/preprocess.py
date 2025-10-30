@@ -34,20 +34,18 @@ def preprocess_data():
     # Add time-based features
     df = convert_datetime_features(df)
 
-    # Handle missing values (fixed to avoid FutureWarning)
-    df['Average Speed'] = df['Average Speed'].fillna(df['Average Speed'].median())
-    df['Congestion Level'] = df['Congestion Level'].fillna(df['Congestion Level'].mean())
+    # Handle missing values
+    for col in ['Average Speed', 'Traffic Volume', 'Congestion Level']:
+        if col in df.columns:
+            df[col] = df[col].fillna(df[col].median())
 
+    # Select features for modeling
+    features = ['Congestion Level', 'Average Speed', 'Traffic Volume']
     
-
-    # Initialize and fit scaler
     scaler = MinMaxScaler()
+    df[features] = scaler.fit_transform(df[features])
 
-    # Scale numerical features
-    numerical_features = ['Average Speed', 'Congestion Level']  
-    df[numerical_features] = scaler.fit_transform(df[numerical_features])
-    
-    return df, scaler
+    return df,scaler
 
 
 def convert_datetime_features(df):
