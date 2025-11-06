@@ -118,6 +118,16 @@ def train_model():
     pred_inv = scaler.inverse_transform(pred_padded)[:, congestion_idx]
 
     print("Predicted next congestion level:", pred_inv[0])
+    
+    # Save LSTM predictions to CSV for comparison
+    import pandas as pd
+    results_df = pd.DataFrame({
+      "Actual Congestion": y_test_inv,
+      "Predicted Congestion": y_pred_inv
+    })
+    results_path = os.path.join(model_dir, "lstm_predictions.csv")
+    results_df.to_csv(results_path, index=False)
+    print(f"LSTM predictions saved to: {results_path}")
 
     return model, history
 
