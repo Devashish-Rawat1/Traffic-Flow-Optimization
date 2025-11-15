@@ -20,10 +20,25 @@ def train_model():
     # Load preprocessed data
     df, scaler = preprocess_data()
 
-    # Dynamically pick all features (numeric + one-hot weather)
-    features = [col for col in df.columns if col not in ["Date", "Area Name", "Road/Intersection Name"]]
+    # Use the exact feature ordering that the scaler was fitted with (if available).
+    # This ensures scaler.data_min_/data_max_ indices align with the columns we feed to the model.
+    if hasattr(scaler, "feature_names_in_"):
+        features = list(scaler.feature_names_in_)
+    else:
+        # fallback: pick numeric + one-hot weather columns as before
+        features = [col for col in df.columns if col not in ["Date", "Area Name", "Road/Intersection Name"]]
+
     target_col = "Congestion Level"
 
+    # sanity check: make sure target_col is in features (so we can read its min/max from scaler)
+    if target_col not in features:
+        raise ValueError(
+            f"Expected target column '{target_col}' to be present in scaler.feature_names_in_. "
+            "Scaler was fitted on a different set of features. Please ensure the scaler was fitted "
+            "including the target column or update preprocess to include it."
+        )
+
+    # Build data and target using the same feature ordering scaler expects
     data = df[features].values
     target = df[target_col].values
 
@@ -31,7 +46,7 @@ def train_model():
     seq_length = 48
     X, y = [], []
     for i in range(len(data) - seq_length):
-        X.append(data[i:i+seq_length])   # all features
+        X.append(data[i:i+seq_length])   # all features in scaler order
         y.append(target[i+seq_length])   # predict congestion only
 
     X = np.array(X)
@@ -78,19 +93,15 @@ def train_model():
     # ------------------------
     y_pred = model.predict(X_test).flatten()
 
-    # Inverse-transform congestion level only (fix applied)
+    # Use the same features ordering to find target index inside scaler internals
     congestion_idx = features.index(target_col)
-    n_features = scaler.n_features_in_
 
-    # Pad arrays to match scaler's expected feature size
-    y_test_padded = np.zeros((len(y_test), n_features))
-    y_pred_padded = np.zeros((len(y_pred), n_features))
+    target_min = scaler.data_min_[congestion_idx]
+    target_max = scaler.data_max_[congestion_idx]
 
-    y_test_padded[:, congestion_idx] = y_test
-    y_pred_padded[:, congestion_idx] = y_pred
-
-    y_test_inv = scaler.inverse_transform(y_test_padded)[:, congestion_idx]
-    y_pred_inv = scaler.inverse_transform(y_pred_padded)[:, congestion_idx]
+    # Manual MinMax inverse transform (safe and explicit)
+    y_test_inv = y_test * (target_max - target_min) + target_min
+    y_pred_inv = y_pred * (target_max - target_min) + target_min
 
     mse = mean_squared_error(y_test_inv, y_pred_inv)
     rmse = math.sqrt(mse)
@@ -112,21 +123,20 @@ def train_model():
     last_seq = last_seq.reshape(1, seq_length, X.shape[2])
     pred_scaled = model.predict(last_seq).flatten()
 
-    pred_padded = np.zeros((len(pred_scaled), n_features))
-    pred_padded[:, congestion_idx] = pred_scaled
-
-    pred_inv = scaler.inverse_transform(pred_padded)[:, congestion_idx]
-
+    # manual MinMax inverse transform for the single-step prediction
+    pred_inv = pred_scaled * (target_max - target_min) + target_min
     print("Predicted next congestion level:", pred_inv[0])
-    
-    # Save LSTM predictions to CSV for comparison
+
+    # Save LSTM predictions to CSV for comparison (inverse-transformed values)
     import pandas as pd
     results_df = pd.DataFrame({
       "Actual Congestion": y_test_inv,
       "Predicted Congestion": y_pred_inv
     })
+
     results_path = os.path.join(model_dir, "lstm_predictions.csv")
     results_df.to_csv(results_path, index=False)
+
     print(f"LSTM predictions saved to: {results_path}")
 
     return model, history

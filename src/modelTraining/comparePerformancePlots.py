@@ -26,9 +26,12 @@ min_len = min(len(xgb_preds), len(lstm_preds))
 xgb_preds = xgb_preds.head(min_len)
 lstm_preds = lstm_preds.head(min_len)
 
-actual = xgb_preds["Actual Congestion"].values
-xgb_pred = xgb_preds["Predicted Congestion"].values
-lstm_pred = lstm_preds["Predicted Congestion"].values
+actual_lstm = lstm_preds["Actual Congestion"].values
+pred_lstm = lstm_preds["Predicted Congestion"].values
+
+actual_xgb = xgb_preds["Actual Congestion"].values
+pred_xgb = xgb_preds["Predicted Congestion"].values
+
 
 # === Compute Metrics ===
 def compute_metrics(y_true, y_pred):
@@ -39,8 +42,8 @@ def compute_metrics(y_true, y_pred):
     r2 = r2_score(y_true, y_pred)
     return {"MSE": mse, "RMSE": rmse, "MAE": mae, "MAPE": mape, "R²": r2}
 
-lstm_metrics = compute_metrics(actual, lstm_pred)
-xgb_metrics = compute_metrics(actual, xgb_pred)
+lstm_metrics = compute_metrics(actual_lstm, pred_lstm)
+xgb_metrics = compute_metrics(actual_xgb, pred_xgb)
 
 # === 1️ Bar Plot: Metric Comparison ===
 metrics = list(lstm_metrics.keys())
@@ -67,22 +70,36 @@ plt.show()
 print(f" Saved: {bar_plot_path}")
 
 # === 2️ Line Plot: Actual vs Predicted Comparison ===
-plt.figure(figsize=(10, 6))
-plt.plot(actual, label="Actual Congestion", color="black", linewidth=2)
-plt.plot(xgb_pred, label="XGBoost Predicted", color="orange", alpha=0.8)
-plt.plot(lstm_pred, label="LSTM Predicted", color="blue", alpha=0.7)
+# === 2️⃣ Corrected Line Plots ===
 
-plt.title("Actual vs Predicted Congestion Levels — LSTM vs XGBoost")
+plt.figure(figsize=(12, 6))
+
+# --- Subplot 1: XGBoost ---
+plt.plot(actual_xgb, label="Actual", color="black", linewidth=2)
+plt.plot(pred_xgb, label="Predicted", color="orange")
+plt.title("XGBoost: Actual vs Predicted")
 plt.xlabel("Sample Index")
 plt.ylabel("Congestion Level")
 plt.legend()
-plt.grid(True, linestyle="--", alpha=0.6)
+#plt.grid(True, linestyle="--", alpha=0.6)
+
 plt.tight_layout()
 
 line_plot_path = os.path.join(MODEL_DIR, "LSTM_vs_XGBoost_Predictions.png")
 plt.savefig(line_plot_path)
 plt.show()
-print(f" Saved: {line_plot_path}")
+
+print(f"Saved: {line_plot_path}")
+# Save metrics to model folder
+metrics_path = os.path.join(MODEL_DIR, "saved_metrics.txt")
+
+with open(metrics_path, "w") as f:
+    f.write("===== Model Performance Comparison =====\n")
+    for name in metrics:
+        f.write(f"{name}: LSTM={lstm_metrics[name]:.6f}, XGBoost={xgb_metrics[name]:.6f}\n")
+
+print(f" Saved metrics to: {metrics_path}")
+
 
 # === Print Comparison Table ===
 print("\n===== Model Performance Comparison =====")
