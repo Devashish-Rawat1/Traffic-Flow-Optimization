@@ -105,7 +105,7 @@ with st.sidebar:
         st.write("LSTM predictions:", os.path.exists(LSTM_PRED_PATH))
         st.write("Training History CSV:", os.path.exists(XGB_TRAIN_HISTORY_CSV))
 
-st.title("🚦 Traffic Congestion: LSTM vs XGBoost (Interactive)")
+st.title("🚦 Traffic Flow Optimization: LSTM vs XGBoost ")
 
 with st.spinner("Loading models..."):
     lstm, scaler, xgb_model = load_models()
