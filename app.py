@@ -152,8 +152,8 @@ else:
     with tab1:
         dfm = pd.DataFrame({
             "Metric": lstm_metrics.keys(),
-            "LSTM": lstm_metrics.values(),
-            "XGBoost": xgb_metrics.values()
+            "XGBoost": xgb_metrics.values(),
+            "LSTM": lstm_metrics.values()
         })
         st.table(dfm.set_index("Metric"))
 
