@@ -41,11 +41,26 @@ streamlit run app.py
 
 ## 📂 Project Structure
 
-    ├── data/
-    ├── models/
+    ├── data/raw
+    ├── documents/
+        ├──notes/
+        ├──ppt/
+        └──research_paper/
+    ├── model/
+        ├── lstm_predictions.csv
+        └── xgboost_predictions.csv
+    ├── notebooks
+    ├── screenshorts
+    ├── src/
+        ├── app/
+        ├── dataPreprocessing/
+            ├── preprocess2.py
+            └── preprocess_xgboost.py
+        ├── modelTraining/
+            ├── trainLstm2.py
+            ├── trainXgboost.py
+            └── comparePerformancePlots.py
     ├── app.py
-    ├── train_lstm.py
-    ├── train_xgboost.py
     ├── requirements.txt
     └── README.md
 
